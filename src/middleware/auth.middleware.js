@@ -1,4 +1,4 @@
-const usermodel = require("../models/user.model")
+const userModel = require("../models/user.model")
 const jwt = require("jsonwebtoken")
 
 async function authMiddleware(req,res,next) {
@@ -29,6 +29,4 @@ async function authMiddleware(req,res,next) {
     }
 }
 
-module.export = {
-    authMiddleware
-}
+module.exports = authMiddleware
