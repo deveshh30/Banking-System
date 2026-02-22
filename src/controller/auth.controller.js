@@ -1,5 +1,6 @@
 const userModel = require("../models/user.model")
 const jwt = require("jsonwebtoken")
+const emailService = require("../service/email.service")
 
 // * - user register controller
 // * - POST/ api/auth/register
@@ -32,6 +33,8 @@ async function userRegister(req, res ) {
             name : user.name
         }, token
     })
+
+    await emailService.sendRegisterationEmail(user.email , user.name)
 }
 
 // * - User Login Controller
@@ -47,7 +50,9 @@ async function userLogin(req,res) {
         })
      }
 
-     const isValidPassword = user.comparePassword(password)
+     const isValidPassword = user.comparePassword(password , this.password)
+
+     console.log(password, this.password)
 
      if(!isValidPassword) {
       return res.status(401)
@@ -68,6 +73,8 @@ async function userLogin(req,res) {
         }, token
     })
 }
+
+
 
 module.exports = {
     userRegister,
