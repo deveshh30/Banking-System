@@ -2,6 +2,7 @@ const transactionModel = require("../models/transaction.model")
 const ledgerModel = require("../models/ledger.model")
 const accoundModel = require("../models/account.model")
 const emailService = require("../service/email.service")
+const mongoose = require("mongoose")
 
 async function createTransaction(req , res) {
     //1
@@ -12,7 +13,10 @@ async function createTransaction(req , res) {
              message : "all stats are required"
         })
     }
+    
     const senderAccount = await accoundModel.findOne({_id : sendersAccount})
+
+
     const receiversAccount = await accoundModel.findOne({_id : receiverAccount})
 
     if(!senderAccount || !receiversAccount) {
@@ -47,6 +51,59 @@ async function createTransaction(req , res) {
 
     
     }
+
+    //3
+
+    if(senderAccount.status != "ACTIVE" || receiverAccount.status != "ACTIVE"){
+        return res.status(400).json ({
+            message : "both senders and reciever account should be active"
+        })
+    }
+
+    //4 get senders balance
+
+    const balance = await fromUserAccount.getBalance();
+
+    if(balance < amount ) {
+        res.status(400)
+        .json({
+            message : `Insufficient balance, current balance is ${balance}. Requested amount is ${amount}`
+        })
+    }
+
+    //5 generate transaction
+
+    const session = await mongoose.startSession()
+    session.startTransaction()
+
+    const transaction = await transactionModel.create({
+        sendersAccount,
+        receiverAccount,
+        amount,
+        idempotancyKey,
+        status : "PENDING"
+    },  {session})
+
+    const debitLedgerEntry = await ledgerModel.create({
+        account : sendersAccount,
+        amount : amount ,
+        transaction : transaction._id,
+        type : "DEBIT"
+    }, {session })
+
+    const creditLedgerEntry = await ledgerModel.create({
+        account : receiverAccount,
+        amount : amount ,
+        transaction : transaction._id,
+        type : "CREDIT"
+    }, {session })
+
+    transaction.status = "COMPLETED"
+    await transaction.save({session})
+
+    await session.commitTransaction()
+    sessionn.endSession()
+
 
 }
 
