@@ -51,6 +51,14 @@ async function sendRegisterationEmail(userEmail , name) {
 
 }
 
+async function sendTransactionEmail(userEmail , name , amount , receiverAccount) {
+  
+}
+
+async function sendTransactionFailEmail(userEmail , name , amount , receiverAccount) {
+  
+}
+
 module.exports = {
     sendRegisterationEmail
 }

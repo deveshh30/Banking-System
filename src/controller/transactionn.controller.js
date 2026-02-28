@@ -102,11 +102,20 @@ async function createTransaction(req , res) {
     await transaction.save({session})
 
     await session.commitTransaction()
-    sessionn.endSession()
+    session.endSession()
+
+    await emailService.sendTransactionEmail( req.user.email , req.user.nanme , amount , receiverAccount){
+        return res.status(200).json({
+            message: "transaction completed successfully",
+            transaction: transaction,
+        })
+    }
 
 
 }
 
+
+module.exports = {createTransaction}
 
 
 // 1. validate the request ,
